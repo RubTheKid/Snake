@@ -81,7 +81,63 @@ public class GameState
 
     private void AddHead(Position pos)
     {
+        snakePositions.AddFirst(pos);
+        Grid[pos.Row, pos.Col] = GridValue.Snake;
+    }
 
+    private void RemoveTail()
+    {
+        Position tail = snakePositions.Last.Value;
+        Grid[tail.Row, tail.Col] = GridValue.Empty;
+        snakePositions.RemoveLast();
+    }
+
+    public void ChangeDirection(Direction dir)
+    {
+        Dir = dir;
+    }
+
+    private bool OutsideGrid(Position pos)
+    {
+        return pos.Row < 0 || pos.Row >= Rows || pos.Col < 0 || pos.Col >= Cols;
+    }
+
+    private GridValue Willhit(Position newHeadPos)
+    {
+        if (OutsideGrid(newHeadPos))
+        {
+            return GridValue.Outside;
+        }
+
+        if (newHeadPos == TailPosition())
+        {
+            return GridValue.Empty;
+        }
+
+        return Grid[newHeadPos.Row, newHeadPos.Col];
+    }
+
+
+    public void Move()
+    {
+        Position newHeadPos = HeadPosition().Translate(Dir);
+        GridValue hit = Willhit(newHeadPos);
+
+        if (hit == GridValue.Outside || hit == GridValue.Snake)
+        {
+            GameOver = true;
+        }
+        else if (hit == GridValue.Empty)
+        {
+            RemoveTail();
+            AddHead(newHeadPos);
+        }
+        else if (hit == GridValue.Food)
+        {
+            AddHead(newHeadPos);
+            Score++;
+            AddFood();
+        }
     }
 
 }
